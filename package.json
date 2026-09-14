@@ -1,0 +1,16 @@
+{
+  "name": "ado-estimates-status-check",
+  "version": "1.0.0",
+  "description": "Azure DevOps pull request status check for Days, RemainingDays, and CompletedDays on linked work items.",
+  "main": "src/functions/*.js",
+  "scripts": {
+    "start": "func start",
+    "test": "node --test src/evaluateEstimates.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@azure/functions": "^4.7.0"
+  }
+}

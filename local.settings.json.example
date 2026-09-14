@@ -1,0 +1,14 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "FUNCTIONS_EXTENSION_VERSION": "~4",
+    "AzureWebJobsFeatureFlags": "EnableWorkerIndexing",
+    "ADO_ORGANIZATION_URL": "https://dev.azure.com/YourOrg",
+    "ADO_PAT": "",
+    "ADO_STATUS_GENRE": "pr-policy",
+    "ADO_STATUS_NAME": "work-item-estimates",
+    "ADO_API_VERSION": "7.1"
+  }
+}

@@ -1,0 +1,6 @@
+.git*
+.vscode
+local.settings.json
+*.md
+*.test.js
+node_modules/.bin
