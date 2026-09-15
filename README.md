@@ -1,6 +1,6 @@
 # Azure DevOps PR estimate status check
 
-Node.js Azure Function (v4) that acts as an Azure DevOps pull request **Status check**. On PR created/updated, it loads every linked work item and posts `succeeded` or `failed` based on:
+Node.js Azure Function (v4) that acts as an Azure DevOps pull request **Status check**. On PR created/updated, work item linked/unlinked, or estimate field changes on a linked work item, it loads every linked work item and posts `succeeded` or `failed` based on:
 
 - `Days` greater than 0
 - `RemainingDays` equal to 0
@@ -39,7 +39,7 @@ The HTTP function is `estimateStatusCheck` (POST, function-key auth). Copy the f
 
 Use the same names in `local.settings.json` (`Values`) and in the Function App **Application settings**.
 
-Project, repository, and pull request id are **not** environment variables. They come from the Azure DevOps service-hook payload.
+Project, repository, and pull request id are **not** environment variables. They come from the Azure DevOps service-hook payload (PR events) or from work-item ArtifactLinks (`vstfs:///Git/PullRequestId/...`).
 
 ### Required — Azure Functions host
 
@@ -73,12 +73,15 @@ Do not commit a filled `ADO_PAT`. Portal-only settings such as `WEBSITE_CONTENTA
 
 ### 1. Service hooks
 
-In the Azure DevOps project: **Project settings → Service hooks → Web Hooks**. Create **two** subscriptions that POST to the function URL (include the function key):
+In the Azure DevOps project: **Project settings → Service hooks → Web Hooks**. Create **three** subscriptions that POST to the same function URL (include the function key). Set **Resource details to send** to **All**.
 
 1. **Pull request created**
 2. **Pull request updated**
+3. **Work item updated**
 
-Non-PR payloads (including some “Test” notifications) return HTTP 200 and do not post a status.
+**Pull request updated** does **not** fire when a work item is linked or unlinked. That is a work-item event. Leave the work-item hook’s type and area filters open so both link changes and edits to `Days` / `RemainingDays` / `CompletedDays` are delivered.
+
+Unrecognized or unrelated payloads (including some “Test” notifications, and work item updates with no related pull request) return HTTP 200 and do not post a status.
 
 ### 2. Branch status policy
 
@@ -96,7 +99,9 @@ The function posts:
 ## Layout
 
 - `src/functions/estimateStatusCheck.js` — HTTP trigger
+- `src/parsePayload.js` — PR and work-item service-hook parsing
+- `src/checkPrEstimates.js` — evaluate linked work items and post PR status
 - `src/adoClient.js` — Azure DevOps REST calls
 - `src/evaluateEstimates.js` — pass/fail rules
-- `src/evaluateEstimates.test.js` — unit tests (`npm test`)
+- `src/*.test.js` — unit tests (`npm test`)
 - `local.settings.json.example` — full env var template

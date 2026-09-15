@@ -1,36 +1,53 @@
 const { app } = require('@azure/functions');
 const { getConfig } = require('../config');
+const { getWorkItemRelations } = require('../adoClient');
+const { evaluateAndPostPrStatus } = require('../checkPrEstimates');
 const {
-  getPullRequestWorkItemIds,
-  getWorkItems,
-  postPullRequestStatus
-} = require('../adoClient');
-const { evaluateEstimates } = require('../evaluateEstimates');
+  parsePrPayload,
+  parseWorkItemPrTargets,
+  parseWorkItemId,
+  hasEstimateFieldChanges,
+  extractPrTargetsFromRelations
+} = require('../parsePayload');
 
-function parsePrPayload(body) {
-  const resource = body?.resource;
-  if (!resource || typeof resource !== 'object') {
-    return null;
+function jsonBodyFromResults(results) {
+  if (results.length === 1) {
+    return {
+      state: results[0].state,
+      description: results[0].description
+    };
   }
 
-  const pullRequestId = Number(resource.pullRequestId);
-  const repository = resource.repository;
-  if (!Number.isInteger(pullRequestId) || pullRequestId < 1 || !repository) {
-    return null;
+  return { results };
+}
+
+async function resolvePrTargets(body, context) {
+  const pr = parsePrPayload(body);
+  if (pr) {
+    return [pr];
   }
 
-  const project =
-    repository.project?.name ||
-    repository.project?.id ||
-    body.resourceContainers?.project?.name ||
-    null;
-  const repositoryId = repository.id;
-
-  if (!project || !repositoryId) {
-    return null;
+  const linkTargets = parseWorkItemPrTargets(body);
+  if (linkTargets.length > 0) {
+    return linkTargets;
   }
 
-  return { pullRequestId, project, repositoryId };
+  if (!hasEstimateFieldChanges(body)) {
+    return [];
+  }
+
+  const workItemId = parseWorkItemId(body);
+  if (!workItemId) {
+    return [];
+  }
+
+  const config = getConfig();
+  const relations = await getWorkItemRelations({ ...config, id: workItemId });
+  const targets = extractPrTargetsFromRelations(relations);
+  context.log(
+    `Estimate fields changed on work item ${workItemId}; found ${targets.length} linked pull request(s)`
+  );
+  return targets;
 }
 
 app.http('estimateStatusCheck', {
@@ -44,39 +61,25 @@ app.http('estimateStatusCheck', {
       return { status: 200, jsonBody: { message: 'Ignored: body is not JSON' } };
     }
 
-    const pr = parsePrPayload(body);
-    if (!pr) {
-      context.log('Ignored non-PR payload');
-      return { status: 200, jsonBody: { message: 'Ignored: not a pull request event' } };
-    }
-
     try {
+      const targets = await resolvePrTargets(body, context);
+      if (targets.length === 0) {
+        context.log('Ignored payload with no pull request to check');
+        return {
+          status: 200,
+          jsonBody: { message: 'Ignored: not a pull request event' }
+        };
+      }
+
       const config = getConfig();
-      context.log(`Checking estimates for PR ${pr.pullRequestId} in ${pr.project}`);
-
-      const ids = await getPullRequestWorkItemIds({ ...config, ...pr });
-      const workItems = await getWorkItems({ ...config, ids });
-      const result = evaluateEstimates(workItems);
-
-      await postPullRequestStatus({
-        ...config,
-        ...pr,
-        status: {
-          state: result.state,
-          description: result.description,
-          context: {
-            name: config.statusName,
-            genre: config.statusGenre
-          }
-        }
-      });
+      const results = [];
+      for (const target of targets) {
+        results.push(await evaluateAndPostPrStatus(config, target, context));
+      }
 
       return {
         status: 200,
-        jsonBody: {
-          state: result.state,
-          description: result.description
-        }
+        jsonBody: jsonBodyFromResults(results)
       };
     } catch (error) {
       context.error(error);

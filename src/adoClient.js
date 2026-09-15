@@ -88,6 +88,12 @@ async function getWorkItems({ organizationUrl, ids, pat, apiVersion }) {
   return items;
 }
 
+async function getWorkItemRelations({ organizationUrl, id, pat, apiVersion }) {
+  const path = `/_apis/wit/workitems/${encodeURIComponent(String(id))}?$expand=relations`;
+  const data = await adoFetch(apiUrl(organizationUrl, path, apiVersion), pat);
+  return data?.relations || [];
+}
+
 async function postPullRequestStatus({
   organizationUrl,
   project,
@@ -110,5 +116,6 @@ module.exports = {
   WORK_ITEM_FIELDS,
   getPullRequestWorkItemIds,
   getWorkItems,
+  getWorkItemRelations,
   postPullRequestStatus
 };
