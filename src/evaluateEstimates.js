@@ -1,6 +1,6 @@
-const DAYS_FIELD = 'Days';
-const REMAINING_DAYS_FIELD = 'RemainingDays';
-const COMPLETED_DAYS_FIELD = 'CompletedDays';
+const DAYS_FIELD = 'Custom.Days';
+const REMAINING_DAYS_FIELD = 'Custom.RemainingDays';
+const COMPLETED_DAYS_FIELD = 'Custom.CompletedDays';
 
 const DESCRIPTION_MAX_LENGTH = 400;
 
@@ -70,7 +70,7 @@ function evaluateEstimates(workItems) {
 
   let description;
   if (passed) {
-    description = `Estimates OK: ${results.length} work item(s) have Days>0, RemainingDays=0, CompletedDays>0.`;
+    description = `Estimates OK: ${results.length} work item(s) have Custom.Days>0, Custom.RemainingDays=0, Custom.CompletedDays>0.`;
   } else {
     const details = failed
       .map((result) => `#${result.id}: ${result.failures.join('; ')}`)

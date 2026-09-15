@@ -2,9 +2,9 @@ const WORK_ITEM_FIELDS = [
   'System.Id',
   'System.Title',
   'System.WorkItemType',
-  'Days',
-  'RemainingDays',
-  'CompletedDays'
+  'Custom.Days',
+  'Custom.RemainingDays',
+  'Custom.CompletedDays'
 ];
 
 const WORK_ITEMS_BATCH_SIZE = 200;

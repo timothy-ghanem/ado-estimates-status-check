@@ -153,13 +153,21 @@ describe('parseWorkItemPrTargets', () => {
 });
 
 describe('hasEstimateFieldChanges', () => {
-  it('is true when Days, RemainingDays, or CompletedDays changed', () => {
-    assert.equal(hasEstimateFieldChanges({ resource: { fields: { Days: { newValue: 3 } } } }), true);
+  it('is true when Custom.Days, Custom.RemainingDays, or Custom.CompletedDays changed', () => {
     assert.equal(
-      hasEstimateFieldChanges({ resource: { fields: { RemainingDays: { oldValue: 2, newValue: 0 } } } }),
+      hasEstimateFieldChanges({ resource: { fields: { 'Custom.Days': { newValue: 3 } } } }),
       true
     );
-    assert.equal(hasEstimateFieldChanges({ resource: { fields: { CompletedDays: { newValue: 1 } } } }), true);
+    assert.equal(
+      hasEstimateFieldChanges({
+        resource: { fields: { 'Custom.RemainingDays': { oldValue: 2, newValue: 0 } } }
+      }),
+      true
+    );
+    assert.equal(
+      hasEstimateFieldChanges({ resource: { fields: { 'Custom.CompletedDays': { newValue: 1 } } } }),
+      true
+    );
   });
 
   it('is false for unrelated field updates', () => {

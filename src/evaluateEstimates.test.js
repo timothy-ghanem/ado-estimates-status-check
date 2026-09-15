@@ -7,13 +7,13 @@ function workItem(id, days, remainingDays, completedDays) {
     'System.Id': id
   };
   if (days !== undefined) {
-    fields.Days = days;
+    fields['Custom.Days'] = days;
   }
   if (remainingDays !== undefined) {
-    fields.RemainingDays = remainingDays;
+    fields['Custom.RemainingDays'] = remainingDays;
   }
   if (completedDays !== undefined) {
-    fields.CompletedDays = completedDays;
+    fields['Custom.CompletedDays'] = completedDays;
   }
   return { id, fields };
 }
@@ -39,25 +39,25 @@ describe('parseNumber', () => {
 });
 
 describe('evaluateWorkItem', () => {
-  it('passes when Days>0, RemainingDays=0, CompletedDays>0', () => {
+  it('passes when Custom.Days>0, Custom.RemainingDays=0, Custom.CompletedDays>0', () => {
     const result = evaluateWorkItem(workItem(12, 5, 0, 5));
     assert.equal(result.passed, true);
     assert.deepEqual(result.failures, []);
   });
 
-  it('fails when Days is missing or not greater than 0', () => {
-    assert.match(evaluateWorkItem(workItem(1, undefined, 0, 1)).failures[0], /Days is missing/);
-    assert.match(evaluateWorkItem(workItem(1, 0, 0, 1)).failures[0], /Days is 0/);
+  it('fails when Custom.Days is missing or not greater than 0', () => {
+    assert.match(evaluateWorkItem(workItem(1, undefined, 0, 1)).failures[0], /Custom\.Days is missing/);
+    assert.match(evaluateWorkItem(workItem(1, 0, 0, 1)).failures[0], /Custom\.Days is 0/);
   });
 
-  it('fails when RemainingDays is missing or not 0', () => {
-    assert.match(evaluateWorkItem(workItem(2, 3, undefined, 3)).failures[0], /RemainingDays is missing/);
-    assert.match(evaluateWorkItem(workItem(2, 3, 2, 1)).failures[0], /RemainingDays is 2/);
+  it('fails when Custom.RemainingDays is missing or not 0', () => {
+    assert.match(evaluateWorkItem(workItem(2, 3, undefined, 3)).failures[0], /Custom\.RemainingDays is missing/);
+    assert.match(evaluateWorkItem(workItem(2, 3, 2, 1)).failures[0], /Custom\.RemainingDays is 2/);
   });
 
-  it('fails when CompletedDays is missing or not greater than 0', () => {
-    assert.match(evaluateWorkItem(workItem(3, 3, 0, undefined)).failures[0], /CompletedDays is missing/);
-    assert.match(evaluateWorkItem(workItem(3, 3, 0, 0)).failures[0], /CompletedDays is 0/);
+  it('fails when Custom.CompletedDays is missing or not greater than 0', () => {
+    assert.match(evaluateWorkItem(workItem(3, 3, 0, undefined)).failures[0], /Custom\.CompletedDays is missing/);
+    assert.match(evaluateWorkItem(workItem(3, 3, 0, 0)).failures[0], /Custom\.CompletedDays is 0/);
   });
 });
 
@@ -91,8 +91,8 @@ describe('evaluateEstimates', () => {
     ]);
     assert.equal(result.passed, false);
     assert.equal(result.state, 'failed');
-    assert.match(result.description, /#123: RemainingDays is 3/);
-    assert.match(result.description, /#456: Days is missing/);
+    assert.match(result.description, /#123: Custom\.RemainingDays is 3/);
+    assert.match(result.description, /#456: Custom\.Days is missing/);
     assert.doesNotMatch(result.description, /#10:/);
   });
 });

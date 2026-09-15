@@ -2,9 +2,9 @@
 
 Node.js Azure Function (v4) that acts as an Azure DevOps pull request **Status check**. On PR created/updated, work item linked/unlinked, or estimate field changes on a linked work item, it loads every linked work item and posts `succeeded` or `failed` based on:
 
-- `Days` greater than 0
-- `RemainingDays` equal to 0
-- `CompletedDays` greater than 0
+- `Custom.Days` greater than 0
+- `Custom.RemainingDays` equal to 0
+- `Custom.CompletedDays` greater than 0
 
 A pull request with no linked work items fails. Missing, null, or non-numeric field values fail.
 
@@ -79,7 +79,7 @@ In the Azure DevOps project: **Project settings → Service hooks → Web Hooks*
 2. **Pull request updated**
 3. **Work item updated**
 
-**Pull request updated** does **not** fire when a work item is linked or unlinked. That is a work-item event. Leave the work-item hook’s type and area filters open so both link changes and edits to `Days` / `RemainingDays` / `CompletedDays` are delivered.
+**Pull request updated** does **not** fire when a work item is linked or unlinked. That is a work-item event. Leave the work-item hook’s type and area filters open so both link changes and edits to `Custom.Days` / `Custom.RemainingDays` / `Custom.CompletedDays` are delivered.
 
 Unrecognized or unrelated payloads (including some “Test” notifications, and work item updates with no related pull request) return HTTP 200 and do not post a status.
 
